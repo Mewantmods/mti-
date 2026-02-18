@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trixiee • Horror Streamer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Creepster&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050507;
+      --card: #0e0f14;
+      --accent: #b61cff;
+      --accent-2: #ff1c7a;
+      --text: #e8e8ee;
+      --muted: #9aa0b4;
+      --glow: 0 0 40px rgba(182,28,255,.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: radial-gradient(1200px 600px at 70% -10%, rgba(182,28,255,.15), transparent 60%), var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+    header {
+      position: relative;
+      min-height: 92vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .fog {
+      position: absolute; inset: -20%;
+      background: url('https://images.unsplash.com/photo-1502472584811-0a2f2feb8968?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+      filter: blur(30px) saturate(70%);
+      opacity: .25;
+      animation: drift 40s linear infinite;
+    }
+
+    @keyframes drift { 0% { transform: translateX(0); } 50% { transform: translateX(-6%); } 100% { transform: translateX(0); } }
+
+    .hero {
+      position: relative;
+      z-index: 2;
+      max-width: 1100px;
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex; gap: 10px; align-items: center;
+      background: linear-gradient(135deg, rgba(182,28,255,.18), rgba(255,28,122,.18));
+      border: 1px solid rgba(182,28,255,.35);
+      padding: 8px 14px; border-radius: 999px; color: #fff; box-shadow: var(--glow);
+    }
+
+    .title {
+      font-family: Creepster, cursive;
+      font-size: clamp(56px, 9vw, 96px);
+      line-height: .9; letter-spacing: 2px; margin: 18px 0 10px;
+      text-shadow: 0 0 24px rgba(182,28,255,.45), 0 0 48px rgba(255,28,122,.25);
+    }
+
+    .subtitle { color: var(--muted); font-size: 18px; max-width: 560px; }
+
+    .cta { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
+    .btn {
+      padding: 14px 20px; border-radius: 14px; border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; font-weight: 700; letter-spacing: .3px; cursor: pointer;
+      box-shadow: var(--glow);
+    }
+    .btn.secondary { background: transparent; border-color: rgba(182,28,255,.45); }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)), var(--card);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 22px; padding: 22px; box-shadow: 0 10px 60px rgba(0,0,0,.6);
+    }
+
+    .profile {
+      display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: center;
+    }
+
+      .avatar {
+          width: 120px;
+          height: 120px;
+          background-image: url("https://tse4.mm.bing.net/th/id/OIP.Pqk14R3Qng3u-aloAoBklwHaHa?cb=defcachec2&rs=1&pid=ImgDetMain&o=7&rm=3");
+          background-position: center;
+          background-size: cover;
+          background-repeat: no-repeat;
+      }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+    .stat { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 14px; text-align: center; }
+    .stat b { font-size: 22px; }
+
+    section { max-width: 1200px; margin: 0 auto; padding: 80px 20px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+    .tag { display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); margin: 6px 6px 0 0; color: var(--muted); }
+
+    .neon-line { height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); margin: 18px 0; }
+
+    footer { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+    <header>
+        <div class="fog"></div>
+        <div class="hero">
+            <div>
+                <span class="badge">🔴 Live Most Nights • Horror</span>
+                <h1 class="title">TRIXIEE</h1>
+                <p class="subtitle">A scream-worthy horror streamer known for tense playthroughs, eerie atmosphere, and fearless reactions. Lights off. Headphones on.</p>
+                <div class="cta">
+                    <button class="btn" onclick="goLive()">Watch Live</button>
+                    <button class="btn secondary">Join the Community</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="profile">
+                    <div class="avatar"></div>
+                    <div>
+                        <h3>About Trixiee</h3>
+                        <p class="subtitle">Streaming survival horror, indie nightmares, and psychological thrillers. Expect jump scares, deep lore dives, and late-night vibes.</p>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat"><b>1.2M</b><div>Followers</div></div>
+                    <div class="stat"><b>35.K</b><div>Avg Viewers</div></div>
+                    <div class="stat"><b>4,200+</b><div>Hours Streamed</div></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <h2>Featured Horror Games</h2>
+        <div class="neon-line"></div>
+        <div class="grid">
+            <div class="card"><h3>Psychological Horror</h3><p class="subtitle">Narrative-driven nightmares that mess with your mind.</p><span class="tag">Indie</span><span class="tag">Story</span></div>
+            <div class="card"><h3>Survival Horror</h3><p class="subtitle">Limited resources, relentless enemies, pure tension.</p><span class="tag">Classic</span><span class="tag">Hardcore</span></div>
+            <div class="card"><h3>Co-op Scare Nights</h3><p class="subtitle">Multiplayer chaos with friends and chat choices.</p><span class="tag">Co-op</span><span class="tag">Interactive</span></div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Schedule</h2>
+        <div class="neon-line"></div>
+        <div class="grid">
+            <div class="card"><h3>Mon–Thu</h3><p class="subtitle">8:00 PM – 12:00 AM</p></div>
+            <div class="card"><h3>Friday</h3><p class="subtitle">Scare Marathon</p></div>
+            <div class="card"><h3>Sunday</h3><p class="subtitle">Community Picks</p></div>
+        </div>
+    </section>
+
+    <footer>
+        © 2026 Trixiee • Horror Lives Here
+    </footer>
+
+    <script>
+        function goLive() {
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

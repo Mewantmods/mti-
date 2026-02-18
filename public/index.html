@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTI - Live Streaming Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0e0e10;
+            color: #efeff1;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background-color: #18181b;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #464649;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #9146ff;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #efeff1;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .nav-btn:hover {
+                background-color: #464649;
+            }
+
+        .search-bar {
+            background-color: #464649;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            color: #efeff1;
+            width: 300px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #9146ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Stream Controls */
+        .stream-controls-panel {
+            background-color: #18181b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #9146ff;
+        }
+
+        .stream-controls-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #9146ff;
+        }
+
+        .stream-setup {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stream-btn {
+            background-color: #9146ff;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+            .stream-btn:hover {
+                background-color: #772ce8;
+            }
+
+            .stream-btn:disabled {
+                background-color: #464649;
+                cursor: not-allowed;
+            }
+
+        .stop-btn {
+            background-color: #ff4444;
+        }
+
+            .stop-btn:hover {
+                background-color: #cc3333;
+            }
+
+        .stream-status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .status-offline {
+            background-color: #464649;
+            color: #adadb8;
+        }
+
+        .status-live {
+            background-color: #00ff00;
+            color: #000;
+        }
+
+        .status-error {
+            background-color: #ff4444;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 60px;
+            padding: 20px;
+        }
+
+        /* Homepage */
+        .homepage {
+            display: block;
+        }
+
+        .category-section {
+            margin-bottom: 40px;
+        }
+
+        .category-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #efeff1;
+        }
+
+        .streams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .stream-card {
+            background-color: #18181b;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .stream-card:hover {
+                transform: scale(1.05);
+            }
+
+        .stream-thumbnail {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(45deg, #9146ff, #00d4ff);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+            .stream-thumbnail video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .viewer-count {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .stream-info {
+            padding: 15px;
+        }
+
+        .stream-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #efeff1;
+        }
+
+        .streamer-name {
+            color: #bf94ff;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .game-name {
+            color: #adadb8;
+            font-size: 12px;
+        }
+
+        /* Stream Page */
+        .stream-page {
+            display: none;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            height: calc(100vh - 100px);
+        }
+
+        .stream-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-container {
+            background-color: #000;
+            aspect-ratio: 16/9;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #9146ff, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+            .video-player video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .bit-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(145, 70, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+
+            .bit-overlay.show {
+                transform: translateX(0);
+            }
+
+        .stream-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .control-btn {
+            background-color: #464649;
+            border: none;
+            color: #efeff1;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .control-btn:hover {
+                background-color: #5a5a5d;
+            }
+
+        .clip-btn {
+            background-color: #9146ff;
+        }
+
+            .clip-btn:hover {
+                background-color: #772ce8;
+            }
+
+        .stream-info-panel {
+            background-color: #18181b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .streamer-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .streamer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #9146ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .streamer-details h3 {
+            margin-bottom: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .follow-btn, .subscribe-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .follow-btn {
+            background-color: #464649;
+            color: #efeff1;
+        }
+
+            .follow-btn:hover {
+                background-color: #5a5a5d;
+            }
+
+        .subscribe-btn {
+            background-color: #9146ff;
+            color: white;
+        }
+
+            .subscribe-btn:hover {
+                background-color: #772ce8;
+            }
+
+        /* Chat System */
+        .chat-container {
+            background-color: #18181b;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #464649;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+            .chat-message:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+            .chat-message.mod {
+                background-color: rgba(0, 255, 0, 0.1);
+                border-left: 3px solid #00ff00;
+            }
+
+            .chat-message.bits {
+                background-color: rgba(145, 70, 255, 0.2);
+                border-left: 3px solid #9146ff;
+            }
+
+        .username {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .username.mod {
+                color: #00ff00;
+            }
+
+            .username.subscriber {
+                color: #9146ff;
+            }
+
+            .username.vip {
+                color: #ff69b4;
+            }
+
+        .badge {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            margin-right: 4px;
+        }
+
+        .mod-badge {
+            background-color: #00ff00;
+        }
+
+        .sub-badge {
+            background-color: #9146ff;
+        }
+
+        .vip-badge {
+            background-color: #ff69b4;
+        }
+
+        .emote {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            background-color: #9146ff;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+
+        .chat-input-container {
+            padding: 15px;
+            border-top: 1px solid #464649;
+        }
+
+        .chat-input {
+            width: 100%;
+            background-color: #464649;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            color: #efeff1;
+            resize: none;
+        }
+
+            .chat-input:focus {
+                outline: 2px solid #9146ff;
+            }
+
+        /* Bits Panel */
+        .bits-panel {
+            background-color: #18181b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .bits-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .bits-amount {
+            background-color: #464649;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            color: #efeff1;
+            width: 80px;
+        }
+
+        .donate-btn {
+            background-color: #9146ff;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .donate-btn:hover {
+                background-color: #772ce8;
+            }
+
+        /* Clips Section */
+        .clips-section {
+            display: none;
+        }
+
+        .clips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .clip-card {
+            background-color: #18181b;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .clip-thumbnail {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .clip-info {
+            padding: 15px;
+        }
+
+        .clip-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .clip-date {
+            color: #adadb8;
+            font-size: 12px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px;
+            }
+
+            .search-bar {
+                width: 200px;
+            }
+
+            .nav-buttons {
+                display: none;
+            }
+
+            .stream-page {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .chat-container {
+                height: 400px;
+            }
+
+            .streams-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+
+            .main-content {
+                padding: 10px;
+            }
+
+            .stream-setup {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-bar {
+                width: 150px;
+            }
+
+            .streams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-left {
+                gap: 10px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #18181b;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #464649;
+            border-radius: 4px;
+        }
+
+            .chat-messages::-webkit-scrollbar-thumb:hover {
+                background: #5a5a5d;
+            }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <div class="logo">MTI</div>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showHomepage()">Browse</button>
+                <button class="nav-btn">Following</button>
+                <button class="nav-btn" onclick="showClips()">Clips</button>
+            </div>
+        </div>
+        <input type="text" class="search-bar" placeholder="Search for streams, games, or categories">
+        <div class="navbar-right">
+            <button class="nav-btn">Login</button>
+            <div class="profile-icon" onclick="openProfile()">🤵</div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Homepage -->
+        <div id="homepage" class="homepage">
+            <!-- Stream Controls Panel -->
+            <div class="stream-controls-panel">
+                <h3 class="stream-controls-title">🎥 Start Your Stream</h3>
+                <div class="stream-setup">
+                    <button class="stream-btn" onclick="startScreenShare()">📺 Share Screen</button>
+                    <button class="stream-btn" onclick="startWebcam()">📹 Start Webcam</button>
+                    <button class="stream-btn stop-btn" onclick="stopStream()" disabled id="stopStreamBtn">⏹️ Stop Stream</button>
+                </div>
+                <div class="stream-status status-offline" id="streamStatus">
+                    📴 Stream Offline
+                </div>
+            </div>
+
+            <div class="category-section">
+                <h2 class="category-title">Live Channels</h2>
+                <div class="streams-grid" id="streamsGrid">
+                    <div class="stream-card" onclick="openStream('VoxelKing', 'Fortnite Battle Royale', 'Just got a Victory Royale!', 15420)">
+                        <div class="stream-thumbnail">
+                            🎮 LIVE: Fortnite
+                            <div class="viewer-count">15.4K viewers</div>
+                        </div>
+                        <div class="stream-info">
+                            <div class="stream-title">Just got a Victory Royale!</div>
+                            <div class="streamer-name">VoxelKing</div>
+                            <div class="game-name">Fortnite</div>
+                        </div>
+                    </div>
+
+                    <div class="stream-card" onclick="openStream('FragDoll64', 'Just Chatting', 'Reacting to funny videos!', 8750)">
+                        <div class="stream-thumbnail">
+                            💬 LIVE: Just Chatting
+                            <div class="viewer-count">8.7K viewers</div>
+                        </div>
+                        <div class="stream-info">
+                            <div class="stream-title">Reacting to funny videos!</div>
+                            <div class="streamer-name">FragDoll64</div>
+                            <div class="game-name">Just Chatting</div>
+                        </div>
+                    </div>
+
+                    <div class="stream-card" onclick="openStream('DeepFriedNight', 'Super Mario 64', 'World Record Attempt!', 25600)">
+                        <div class="stream-thumbnail">
+                            🏃 LIVE: Speedrun
+                            <div class="viewer-count">25.6K viewers</div>
+                        </div>
+                        <div class="stream-info">
+                            <div class="stream-title">World Record Attempt!</div>
+                            <div class="streamer-name">DeepFriedNight</div>
+                            <div class="game-name">Super Mario 64</div>
+                        </div>
+                    </div>
+
+                    <div class="stream-card" onclick="openStream('sleepyegg', 'Art', 'Drawing anime characters', 3200)">
+                        <div class="stream-thumbnail">
+                            🎨 LIVE: Digital Art
+                            <div class="viewer-count">3.2K viewers</div>
+                        </div>
+                        <div class="stream-info">
+                            <div class="stream-title">Drawing anime characters</div>
+                            <div class="streamer-name">sleepyegg</div>
+                            <div class="game-name">Art</div>
+                        </div>
+                    </div>
+
+                    <div class="stream-card" onclick="openStream('KhaoticAce', 'Music & Performing Arts', 'Live DJ Set - Electronic Vibes', 12800)">
+                        <div class="stream-thumbnail">
+                            🎵 LIVE: DJ Set
+                            <div class="viewer-count">12.8K viewers</div>
+                        </div>
+                        <div class="stream-info">
+                            <div class="stream-title">Live DJ Set - Electronic Vibes</div>
+                            <div class="streamer-name">KhaoticAce</div>
+                            <div class="game-name">Music & Performing Arts</div>
+                        </div>
+                    </div>
+
+                    <div class="stream-card" onclick="openStream('CodeSlurpee', 'Food & Drink', 'Making homemade pasta!', 5400)">
+                        <div class="stream-thumbnail">
+                            🍳 LIVE: Cooking
+                            <div class="viewer-count">5.4K viewers</div>
+                        </div>
+                        <div class="stream-info">
+                            <div class="stream-title">Making homemade pasta!</div>
+                            <div class="streamer-name">CodeSlurpee</div>
+                            <div class="game-name">Food & Drink</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stream Page -->
+        <div id="streamPage" class="stream-page">
+            <div class="stream-main">
+                <div class="video-container">
+                    <div class="video-player" id="videoPlayer">
+                        🔴 LIVE STREAM
+                    </div>
+                    <div class="bit-overlay" id="bitOverlay">
+                        <div>💎 Thanks for 100 bits!</div>
+                    </div>
+                </div>
+
+                <div class="stream-controls">
+                    <div>
+                        <button class="control-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                        <button class="control-btn">🔊 Volume</button>
+                        <button class="control-btn">⚙️ Settings</button>
+                    </div>
+                    <button class="control-btn clip-btn" onclick="createClip()">✂️ Clip</button>
+                </div>
+
+                <div class="stream-info-panel">
+                    <div class="streamer-header">
+                        <div class="streamer-avatar" id="streamerAvatar">G</div>
+                        <div class="streamer-details">
+                            <h3 id="streamerName">VoxelKing</h3>
+                            <div id="streamTitle">Just got a Victory Royale!</div>
+                            <div id="gameCategory">Fortnite</div>
+                            <div id="viewerCount">15,420 viewers</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="follow-btn" onclick="toggleFollow()">💜 Follow</button>
+                        <button class="subscribe-btn">⭐ Subscribe</button>
+                    </div>
+                </div>
+
+                <div class="bits-panel">
+                    <h4>Support with Bits</h4>
+                    <div class="bits-input">
+                        <input type="number" class="bits-amount" id="bitsAmount" placeholder="100" min="1">
+                        <button class="donate-btn" onclick="sendBits()">💎 Cheer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat-header">Stream Chat</div>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-container">
+                    <textarea class="chat-input" id="chatInput" placeholder="Say something..." rows="2" onkeypress="handleChatInput(event)"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clips Section -->
+        <div id="clipsSection" class="clips-section">
+            <h2 class="category-title">Recent Clips</h2>
+            <div class="clips-grid" id="clipsGrid">
+                <!-- Clips will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Add this at the very top of your <script> tag
+        const socket = io();
+
+        // Global variables
+        let currentStream = null;
+        let chatMessages = [];
+        let clips = [];
+        let isFollowing = false;
+        let isStreaming = false;
+        let currentStreamData = null;
+        let localStream = null;
+        let streamType = null;
+        let isScaredMode = false;
+        let isType1Mode = false;
+        let isStartupMode = false;
+        let isEndingMode = false;
+        let isJumpScareMode = false;
+        let isLaughingMode = false;
+        let videoInterval = null; // Variable to hold the streaming timer
+
+        let chatBots = [
+            // Mods
+            { name: 'ModDarky', type: 'mod' },
+            { name: 'ModMaggie', type: 'mod' },
+            { name: 'ModLoop', type: 'mod' },
+            { name: 'ModGhost', type: 'mod' },
+            { name: 'ModZane', type: 'mod' },
+            { name: 'ModIris', type: 'mod' },
+            { name: 'ModHex', type: 'mod' },
+            { name: 'ModSignal', type: 'mod' },
+
+            // VIPs
+            { name: 'AstroFreak', type: 'vip' },
+            { name: 'DeepFriedNight', type: 'vip' },
+            { name: 'QuantumSheep', type: 'vip' },
+            { name: 'b4k3dbeanz', type: 'vip' },
+            { name: 'CringeBot9000', type: 'vip' },
+            { name: 'SugarWired', type: 'vip' },
+            { name: 'FlickerFog', type: 'vip' },
+            { name: 'FragDoll64', type: 'vip' },
+            { name: 'StaticVIP', type: 'vip' },
+            { name: 'NightCourier', type: 'vip' },
+
+            // Subscribers
+            { name: 'K1ttyPixel', type: 'subscriber' },
+            { name: 'CtrlFreakz', type: 'subscriber' },
+            { name: 'BagelNova', type: 'subscriber' },
+            { name: 'ReelPhantom', type: 'subscriber' },
+            { name: 'SoupTTV', type: 'subscriber' },
+            { name: 'Watcher101', type: 'subscriber' },
+            { name: 'GhostOnDialup', type: 'subscriber' },
+            { name: 'TyperGhost', type: 'subscriber' },
+            { name: 'CapSnacc', type: 'subscriber' },
+            { name: 'lo-fi_chaos', type: 'subscriber' },
+            { name: 'MidnightSub', type: 'subscriber' },
+            { name: 'PixelRoutine', type: 'subscriber' },
+            { name: 'WarmStatic', type: 'subscriber' },
+
+            // Normal viewers
+            { name: 'ToastedSocks', type: 'normal' },
+            { name: 'LunaByte', type: 'normal' },
+            { name: 'noodleBash', type: 'normal' },
+            { name: 'KEKWizard', type: 'normal' },
+            { name: 'MilkOverlord', type: 'normal' },
+            { name: 'MuffinOrBust', type: 'normal' },
+            { name: 'TrashArcade', type: 'normal' },
+            { name: 'z3nithwave', type: 'normal' },
+            { name: 'PluggedOut', type: 'normal' },
+            { name: 'StaticMoth', type: 'normal' },
+            { name: 'RedEyesLofi', type: 'normal' },
+            { name: '0utdat3d', type: 'normal' },
+            { name: 'j0ystrik3', type: 'normal' },
+            { name: 'Pix3lPhantom', type: 'normal' },
+            { name: 'SnapPeaPunk', type: 'normal' },
+            { name: 'Chillkilla93', type: 'normal' },
+            { name: 'GumdropVoid', type: 'normal' },
+            { name: 'ZappedCake', type: 'normal' },
+            { name: 'DreamChipz', type: 'normal' },
+            { name: 'SoftError', type: 'normal' },
+            { name: 'ButtonSmashBro', type: 'normal' },
+            { name: 'ScrambleVision', type: 'normal' },
+            { name: 'NightCursor', type: 'normal' },
+            { name: 'AFK_ButHere', type: 'normal' },
+            { name: 'MutedMic', type: 'normal' },
+            { name: 'ScrollWatcher', type: 'normal' },
+            { name: 'LateNotif', type: 'normal' },
+            { name: 'SpookyLurker', type: 'normal' },
+            { name: 'ChatEcho', type: 'normal' },
+            { name: 'BufferingAgain', type: 'normal' }
+        ];
+
+        let botMessagesNormal = [
+            "night shift already feels cursed",
+            "why is the meat locker humming like that",
+            "this station smells wrong",
+            "check the back freezer",
+            "those shelves weren’t like that before",
+            "why is the radio whispering",
+            "fuel prices aren’t the only thing rising",
+            "cleaning blood or oil??",
+            "that customer didn’t blink",
+            "don’t eat the jerky",
+            "why is the meat warm",
+            "the lights are flickering again",
+            "who keeps opening the back door",
+            "this place feels alive",
+            "did the pumps just breathe",
+            "inventory looks… wrong",
+            "that freezer door looks scratched",
+            "trash bags feel heavier than before",
+            "why does the mirror lag",
+            "check behind the counter",
+            "this ambience is insane",
+            "someone’s standing outside right?",
+            "the hum is getting louder",
+            "why does the meat section drip",
+            "this job is NOT worth minimum wage",
+            "the sink water is red",
+            "did the floor always pulse",
+            "that customer left meat on the counter",
+            "don’t ring the bell",
+            "the lights feel angry",
+            "i wouldn’t work here IRL",
+            "why does the back room smell metallic",
+            "that door wasn’t locked earlier",
+            "the station feels hungry",
+            "fuel for flesh is such a bad sign",
+            "this is not OSHA approved",
+            "who stacked the bones",
+            "the freezer light just blinked",
+            "that shadow didn’t match you",
+            "why does the meat twitch",
+            "this shift is cursed"
+        ];
+
+        let botMessagesScared = [
+            "IT'S IN THE STORE",
+            "TURN AROUND TURN AROUND",
+            "THE FREEZER OPENED",
+            "WHY IS IT BREATHING",
+            "RUN RUN RUN",
+            "IT SAW YOU",
+            "CLOSE THE BACK DOOR",
+            "WHAT IS THAT SHAPE",
+            "THE LIGHTS JUST DIED",
+            "NAH NAH NAH",
+            "IT MOVED WHEN YOU DIDN’T",
+            "HIDE BEHIND THE COUNTER",
+            "THE MEAT IS ALIVE",
+            "IT KNOWS YOU’RE THERE",
+            "WHY IS IT SMILING",
+            "GET OUT OF THE STORE",
+            "IT’S BEHIND THE SHELVES",
+            "THAT IS NOT A CUSTOMER",
+            "MY HEART STOPPED",
+            "WHY IS IT SO QUIET",
+            "DON’T LOOK AT IT",
+            "IT’S WATCHING",
+            "THE FREEZER CLOSED BY ITSELF",
+            "NOPE NOPE NOPE",
+            "IT’S CRAWLING",
+            "WHY IS IT WHISPERING",
+            "IT’S RIGHT THERE",
+            "TURN OFF THE LIGHTS",
+            "IT KNOWS YOUR NAME",
+            "THE FLOOR IS MOVING",
+            "THIS IS TOO MUCH",
+            "WHY IS IT SHAPESHIFTING",
+            "THE DOOR WON’T OPEN",
+            "IT’S BREATHING ON YOU",
+            "I CAN’T WATCH"
+        ];
+
+        let botMessagesType1 = [
+            "1",
+            "11",
+            "111",
+            "ONE",
+            "ONEEE",
+            "111111111",
+            "1️⃣",
+            "ONE ONE ONE",
+            "1111!!!",
+            "1 1 1 1",
+            "typed 1 like you said",
+            "WHY ARE WE DOING THIS",
+            "this feels like a ritual",
+            "chat is summoning it",
+            "i don’t like this",
+            "why is the screen shaking",
+            "STOP TYPING",
+            "ok i typed it",
+            "this is bad",
+            "something reacted",
+            "did the lights flicker",
+            "why did the sound cut",
+            "this is how horror games start",
+            "1 gang 😭",
+            "this feels wrong",
+            "WHY IS IT QUIET",
+            "999",
+            "222",
+            "that was a mistake"
+        ];
+
+        let botMessagesYes = [
+            "Yeah… probably.",
+            "Unfortunately yes.",
+            "Yeah I think so.",
+            "Sadly yes.",
+            "Yep, that’s it.",
+            "Yeah no doubt.",
+            "Yes and I hate it.",
+            "Yeah… confirmed.",
+            "That’s a yes.",
+            "Yeah that’s not normal.",
+            "Yes 100%.",
+            "Yep.",
+            "I’d say yes.",
+            "Yeah that’s bad.",
+            "Yes and it’s intentional.",
+            "Yep that’s scripted.",
+            "Yes but it feels personal.",
+            "Yeah that’s on purpose.",
+            "Yes absolutely.",
+            "Yeah that’s real."
+        ];
+
+        let botMessagesNo = [
+            "Nope.",
+            "Nah that’s not it.",
+            "I don’t think so.",
+            "No way.",
+            "Probably not.",
+            "Nah.",
+            "That’s a no.",
+            "No I don’t buy it.",
+            "Nah that’s something else.",
+            "Nope nope.",
+            "I don’t think that’s safe.",
+            "No.",
+            "Nah I’d avoid that.",
+            "That’s not it.",
+            "No shot.",
+            "Nah fam.",
+            "Not this time.",
+            "I wouldn’t.",
+            "No chance.",
+            "Nope."
+        ];
+
+
+
+        let botMessagesStartup = [
+            "NIGHT SHIFT TIME",
+            "fuel for flesh lets go",
+            "headphones on lights off",
+            "this game already scares me",
+            "ready to work the worst job ever",
+            "gas station horror is undefeated",
+            "why is chat nervous already",
+            "this vibe is immaculate",
+            "late night horror gang",
+            "hope nothing follows us home",
+            "first shift anxiety",
+            "this title is ominous",
+            "working nights never ends well",
+            "this feels like a bad idea",
+            "snacks acquired",
+            "mental health lost",
+            "lets clock in",
+            "here we go"
+        ];
+
+        let botMessagesEnding = [
+            "THAT WAS INSANE",
+            "no way that was the end",
+            "that game is EVIL",
+            "W STREAM",
+            "my nerves are fried",
+            "that demon was terrifying",
+            "fuel for flesh is goated",
+            "chat survived barely",
+            "that atmosphere was unreal",
+            "i need a break after that",
+            "worth staying up",
+            "that ending was disturbing",
+            "i feel unsafe now",
+            "10/10 horror",
+            "that game stuck with me",
+            "thank you for playing this",
+            "chat was losing it",
+            "that was brutal",
+            "night shift trauma",
+            "stream was fire",
+            "i’m gonna think about this all night",
+            "that demon design was nasty",
+            "W horror stream",
+            "ending hit hard",
+            "that last scene??",
+            "i need a comfort video now",
+            "chat was elite",
+            "this game cooked me",
+            "sleep is cancelled",
+            "see y’all next stream",
+            "great stream",
+            "that was unforgettable",
+            "my heart hurts",
+            "absolute nightmare fuel",
+            "we survived barely",
+            "ending stream pain",
+            "perfect horror pacing",
+            "i loved and hated that",
+            "goodnight chat",
+            "stream was insane"
+        ];
+
+        let botMessagesJumpScare = [
+            "I JUMPED",
+            "NOPE",
+            "WHY WAS IT THERE",
+            "MY HEART",
+            "I ACTUALLY FLINCHED",
+            "THAT WAS EVIL",
+            "WHY SO LOUD",
+            "I WASN’T READY",
+            "JUMPSCARE CITY",
+            "I HATE THIS",
+            "THAT GOT ME",
+            "MY SOUL LEFT",
+            "WHY DID IT MOVE LIKE THAT",
+            "NOT COOL",
+            "HEADPHONE USERS DIED",
+            "THAT WAS NASTY",
+            "I YELLED",
+            "I CLOSED MY EYES",
+            "WHY THE FREEZER",
+            "TOO MUCH",
+            "THAT WAS FOUL",
+            "JUMPSCARE AFTER JUMPSCARE",
+            "I NEED A WARNING"
+        ];
+
+
+
+        let botMessagesLaughing = [
+            "chat is losing it 💀",
+            "WHY DID THAT HAPPEN",
+            "nah that was funny",
+            "I CAN’T 😭",
+            "your reaction was priceless",
+            "someone clip that",
+            "that scream 😭",
+            "I laughed out of fear",
+            "comedy horror moment",
+            "chat is feral",
+            "that timing was perfect",
+            "I was scared AND laughing",
+            "the ragdoll 💀",
+            "nahhh",
+            "that caught me off guard",
+            "unintentionally funny",
+            "this game trolls",
+            "that face though",
+            "peak horror comedy",
+            "I wasn’t ready 😂",
+            "chat pls",
+            "I’m crying",
+            "that was ridiculous",
+            "why did it do that",
+            "LMAO",
+            "fear laughter",
+            "perfect clip moment"
+        ];
+
+        let botMessages = botMessagesNormal;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            showHomepage();
+        });
+
+        // Screen Share Functions
+        async function startScreenShare() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        mediaSource: 'screen',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    }
+                });
+
+                localStream = stream;
+                streamType = 'screen';
+                socket.emit('start-stream', 'Host');
+
+                // Create stream data
+                currentStreamData = {
+                    streamer: 'Trixiee ☑️',
+                    game: 'Haunted Gas Station',
+                    title: '🔴 [SPOOKY TIME] CRASHED MY CAR?? 🚗💥 NIGHT SHIFT HORROR',
+                    viewers: Math.floor(Math.random() * 10100) + 90000
+                };
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const videoElement = document.createElement('video');
+                videoElement.srcObject = stream;
+                videoElement.play();
+
+                // Send frames to server every 40ms (approx 25fps)
+                videoInterval = setInterval(() => {
+                    // Set canvas size to match video (reduce size for performance if needed)
+                    canvas.width = 640; // Lower resolution for smoother local streaming
+                    canvas.height = 360;
+
+                    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                    // Convert frame to string data
+                    const data = canvas.toDataURL('image/jpeg', 0.5);
+                    socket.emit('stream-data', data);
+                }, 40);
+
+                // Add to streams grid
+                addLiveStreamToGrid(currentStreamData, stream);
+
+                // Update UI
+                updateStreamStatus('🔴 LIVE', 'status-live');
+                document.getElementById('stopStreamBtn').disabled = false;
+
+                // Handle stream end
+                stream.getVideoTracks()[0].addEventListener('ended', () => {
+                    stopStream();
+                });
+
+                console.log('Screen share started successfully');
+
+            } catch (error) {
+                console.error('Error starting screen share:', error);
+                updateStreamStatus('❌ Screen share failed: ' + error.message, 'status-error');
+            }
+        }
+
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    }
+                });
+
+                localStream = stream;
+                streamType = 'webcam';
+
+                // Create stream data
+                currentStreamData = {
+                    streamer: 'You',
+                    game: 'Just Chatting',
+                    title: 'Live Webcam Stream',
+                    viewers: Math.floor(Math.random() * 50) + 1
+                };
+
+                // Add to streams grid
+                addLiveStreamToGrid(currentStreamData, stream);
+
+                // Update UI
+                updateStreamStatus('🔴 Webcam Live', 'status-live');
+                document.getElementById('stopStreamBtn').disabled = false;
+
+                console.log('Webcam started successfully');
+
+            } catch (error) {
+                console.error('Error starting webcam:', error);
+                updateStreamStatus('❌ Webcam failed: ' + error.message, 'status-error');
+            }
+        }
+
+        function stopStream() {
+            if (localStream) {
+                // Stop all tracks
+                localStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                localStream = null;
+            }
+
+            if (videoInterval) clearInterval(videoInterval);
+            socket.emit('stop-stream');
+            // Remove live stream from grid
+            removeLiveStreamFromGrid();
+
+            // Update UI
+            updateStreamStatus('📴 Stream Offline', 'status-offline');
+            document.getElementById('stopStreamBtn').disabled = true;
+
+            isStreaming = false;
+            streamType = null;
+            currentStreamData = null;
+
+            console.log('Stream stopped');
+        }
+
+        socket.on('stream-started', (streamerName) => {
+            alert(`Live stream started by ${streamerName}!`);
+            // Automatically switch to stream view if you want
+            // openLiveStream({ streamer: streamerName, game: 'Live', title: 'Broadcast', viewers: 1 }, null);
+        });
+
+        // Listen for video frames (The actual video playback)
+        socket.on('stream-data', (imageData) => {
+            const videoPlayer = document.getElementById('videoPlayer');
+
+            // Check if we already have an image element, if not create one
+            let img = videoPlayer.querySelector('#liveStreamImg');
+            if (!img) {
+                videoPlayer.innerHTML = ''; // Clear "OFFLINE" text
+                img = document.createElement('img');
+                img.id = 'liveStreamImg';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'contain';
+                videoPlayer.appendChild(img);
+            }
+
+            // Update the image source with the new frame
+            img.src = imageData;
+        });
+
+        // Listen for stream end
+        socket.on('stream-ended', () => {
+            alert('Stream ended.');
+            // Reset UI
+        });
+
+        function updateStreamStatus(message, statusClass) {
+            const statusElement = document.getElementById('streamStatus');
+            statusElement.textContent = message;
+            statusElement.className = `stream-status ${statusClass}`;
+        }
+
+        function addLiveStreamToGrid(streamData, mediaStream) {
+            const streamsGrid = document.getElementById('streamsGrid');
+
+            // Create stream card
+            const streamCard = document.createElement('div');
+            streamCard.className = 'stream-card live-stream';
+            streamCard.id = 'liveStreamCard';
+
+            // Create video element
+            const video = document.createElement('video');
+            video.srcObject = mediaStream;
+            video.autoplay = true;
+            video.muted = true; // Mute to avoid feedback
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'cover';
+
+            streamCard.innerHTML = `
+                                        <div class="stream-thumbnail">
+                        <div class="viewer-count">${streamData.viewers} viewers</div>
+                    </div>
+                    <div class="stream-info">
+                        <div class="stream-title">${streamData.title}</div>
+                        <div class="streamer-name">${streamData.streamer} (You)</div>
+                        <div class="game-name">${streamData.game}</div>
+                    </div>
+                `;
+
+            // Add video to thumbnail
+            const thumbnail = streamCard.querySelector('.stream-thumbnail');
+            thumbnail.appendChild(video);
+
+            // Add click handler
+            streamCard.onclick = () => openLiveStream(streamData, mediaStream);
+
+            // Add to beginning of grid
+            streamsGrid.insertBefore(streamCard, streamsGrid.firstChild);
+
+            isStreaming = true;
+
+            // Simulate viewer count changes
+            setInterval(() => {
+                if (isStreaming && currentStreamData) {
+                    const change = Math.floor(Math.random() * 10) - 5;
+                    currentStreamData.viewers = Math.max(1, currentStreamData.viewers + change);
+                    const viewerCountElement = streamCard.querySelector('.viewer-count');
+                    if (viewerCountElement) {
+                        viewerCountElement.textContent = `${currentStreamData.viewers} viewers`;
+                    }
+                }
+            }, 5000);
+        }
+
+        function removeLiveStreamFromGrid() {
+            const liveStreamCard = document.getElementById('liveStreamCard');
+            if (liveStreamCard) {
+                liveStreamCard.remove();
+            }
+        }
+
+        function openLiveStream(streamData, mediaStream) {
+            currentStream = streamData;
+
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('streamPage').style.display = 'grid';
+            document.getElementById('clipsSection').style.display = 'none';
+
+            // Update stream info
+            document.getElementById('streamerName').textContent = streamData.streamer;
+            document.getElementById('streamTitle').textContent = streamData.title;
+            document.getElementById('gameCategory').textContent = streamData.game;
+            document.getElementById('viewerCount').textContent = streamData.viewers.toLocaleString() + ' viewers';
+            document.getElementById('streamerAvatar').textContent = streamData.streamer.charAt(0).toUpperCase();
+
+            // Update video player
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.innerHTML = '';
+
+            if (mediaStream) {
+                const video = document.createElement('video');
+                video.srcObject = mediaStream;
+                video.autoplay = true;
+                video.muted = true;
+                video.controls = true;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                videoPlayer.appendChild(video);
+            } else {
+                videoPlayer.innerHTML = `🔴 LIVE: ${streamData.game}`;
+            }
+
+            // Start chat simulation
+            startChatSimulation();
+        }
+
+        // Navigation functions
+        function showHomepage() {
+            document.getElementById('homepage').style.display = 'block';
+            document.getElementById('streamPage').style.display = 'none';
+            document.getElementById('clipsSection').style.display = 'none';
+            stopChatSimulation();
+        }
+
+        function showClips() {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('streamPage').style.display = 'none';
+            document.getElementById('clipsSection').style.display = 'block';
+            displayClips();
+            stopChatSimulation();
+        }
+
+        function openStream(streamer, game, title, viewers) {
+            currentStream = { streamer, game, title, viewers };
+
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('streamPage').style.display = 'grid';
+            document.getElementById('clipsSection').style.display = 'none';
+
+            // Update stream info
+            document.getElementById('streamerName').textContent = streamer;
+            document.getElementById('streamTitle').textContent = title;
+            document.getElementById('gameCategory').textContent = game;
+            document.getElementById('viewerCount').textContent = viewers.toLocaleString() + ' viewers';
+            document.getElementById('streamerAvatar').textContent = streamer.charAt(0).toUpperCase();
+            document.getElementById('videoPlayer').innerHTML = `🔴 LIVE: ${game}`;
+
+            // Start chat simulation
+            startChatSimulation();
+        }
+
+        function openProfile() {
+            window.location.href = "trixiee_streamer_profile.html";
+        }
+
+        // Chat system
+        function startChatSimulation() {
+            // Clear existing messages
+            document.getElementById('chatMessages').innerHTML = '';
+            chatMessages = [];
+
+            // Add initial messages
+            addChatMessage('StreamHelper', 'Welcome to the stream! Please follow the rules and be respectful.', 'mod');
+            addChatMessage(currentStream.streamer, 'Hey everyone! Thanks for joining the stream!', 'streamer');
+
+            // Start bot messages
+            chatInterval = setInterval(() => {
+                if (Math.random() < 9000) { // 70% chance to send a message
+                    const bot = chatBots[Math.floor(Math.random() * chatBots.length)];
+                    const message = botMessages[Math.floor(Math.random() * botMessages.length)];
+                    addChatMessage(bot.name, message, bot.type);
+                }
+            }, 80 + Math.random() * 81) // Random interval between 2-5 seconds
+        }
+
+        function stopChatSimulation() {
+            if (chatInterval) {
+                clearInterval(chatInterval);
+            }
+        }
+
+        function addChatMessage(username, message, type = 'normal') {
+            const chatContainer = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${type}`;
+
+            let badge = '';
+            let usernameClass = '';
+
+            switch (type) {
+                case 'mod':
+                    badge = '<span class="badge mod-badge"></span>';
+                    usernameClass = 'mod';
+                    break;
+                case 'subscriber':
+                    badge = '<span class="badge sub-badge"></span>';
+                    usernameClass = 'subscriber';
+                    break;
+                case 'vip':
+                    badge = '<span class="badge vip-badge"></span>';
+                    usernameClass = 'vip';
+                    break;
+                case 'streamer':
+                    usernameClass = 'mod';
+                    break;
+            }
+
+            // Replace [EMOTE] with emote spans
+            const processedMessage = message.replace(/\[EMOTE\]/g, '<span class="emote"></span>');
+
+            messageElement.innerHTML = `
+                    ${badge}
+                    <span class="username ${usernameClass}">${username}:</span>
+                    <span class="message-text">${processedMessage}</span>
+                `;
+
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Keep only last 100 messages for performance
+            if (chatContainer.children.length > 100) {
+                chatContainer.removeChild(chatContainer.firstChild);
+            }
+        }
+
+        function handleChatInput(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+
+                if (message) {
+                    // Send to server instead of local display
+                    socket.emit('send-chat', {
+                        username: 'User', // You can add a login system later to change this
+                        message: message,
+                        type: 'normal'
+                    });
+                    input.value = '';
+                }
+            }
+        }
+
+        socket.on('receive-chat', (data) => {
+            addChatMessage(data.username, data.message, data.type);
+        });
+
+        // Bits system
+        function sendBits() {
+            const bitsAmount = document.getElementById('bitsAmount').value || 100;
+            const bitOverlay = document.getElementById('bitOverlay');
+
+            // Add to chat
+            addChatMessage('You', `Cheered ${bitsAmount} bits! 💎`, 'bits');
+
+            // Show overlay
+            bitOverlay.innerHTML = `<div>💎 Thanks for ${bitsAmount} bits!</div>`;
+            bitOverlay.classList.add('show');
+
+            setTimeout(() => {
+                bitOverlay.classList.remove('show');
+            }, 3000);
+
+            // Reset input
+            document.getElementById('bitsAmount').value = '';
+        }
+
+        // Follow system
+        function toggleFollow() {
+            const followBtn = document.querySelector('.follow-btn');
+            isFollowing = !isFollowing;
+
+            if (isFollowing) {
+                followBtn.textContent = '💜 Following';
+                followBtn.style.backgroundColor = '#9146ff';
+                addChatMessage('StreamHelper', `${currentStream.streamer} just gained a new follower!`, 'mod');
+            } else {
+                followBtn.textContent = '💜 Follow';
+                followBtn.style.backgroundColor = '#464649';
+            }
+        }
+
+        // Clip system
+        function createClip() {
+            const clipTitle = `${currentStream.streamer} - ${currentStream.game}`;
+            const clipDate = new Date().toLocaleDateString();
+
+            const newClip = {
+                id: clips.length + 1,
+                title: clipTitle,
+                streamer: currentStream.streamer,
+                game: currentStream.game,
+                date: clipDate,
+                thumbnail: `🎬 ${currentStream.game}`
+            };
+
+            clips.unshift(newClip); // Add to beginning
+
+            // Show confirmation
+            alert('Clip created successfully! Check the Clips section to view it.');
+
+            // Add to chat
+            addChatMessage('StreamHelper', 'A clip was just created!', 'mod');
+        }
+
+        function displayClips() {
+            const clipsGrid = document.getElementById('clipsGrid');
+
+            if (clips.length === 0) {
+                clipsGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #adadb8;">
+                            <h3>No clips yet</h3>
+                            <p>Watch a stream and create clips to see them here!</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            clipsGrid.innerHTML = clips.map(clip => `
+                    <div class="clip-card" onclick="playClip(${clip.id})">
+                        <div class="clip-thumbnail">
+                            ${clip.thumbnail}
+                        </div>
+                        <div class="clip-info">
+                            <div class="clip-title">${clip.title}</div>
+                            <div class="streamer-name">${clip.streamer}</div>
+                            <div class="clip-date">${clip.date}</div>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function playClip(clipId) {
+            const clip = clips.find(c => c.id === clipId);
+            if (clip) {
+                alert(`Playing clip: ${clip.title}\n\nThis is still in beta!`);
+            }
+        }
+
+        // Video controls
+        function toggleFullscreen() {
+            const videoContainer = document.querySelector('.video-container');
+
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen().catch(err => {
+                    console.log('Fullscreen not supported');
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener("keydown", function (event) {
+            const key = event.key.toLowerCase();
+
+            if (key === "m") {
+                isScaredMode = !isScaredMode;
+                isType1Mode = false;
+                isStartupMode = false;
+                isEndingMode = false;
+                isNoMode = false;
+                botMessages = isScaredMode ? botMessagesScared : botMessagesNormal;
+                console.log(`Switched to ${isScaredMode ? "SCARED" : "NORMAL"} chat mode`);
+            }
+
+
+            if (key === "/") {
+                isType1Mode = !isType1Mode;
+                isScaredMode = false;
+                isStartupMode = false;
+                isEndingMode = false;
+                isNoMode = false;
+                botMessages = isType1Mode ? botMessagesType1 : botMessagesNormal;
+                console.log(`Switched to ${isType1Mode ? "TYPE 1" : "NORMAL"} chat mode`);
+            }
+
+            if (key === "=") {
+                isStartupMode = !isStartupMode;
+                isScaredMode = false;
+                isType1Mode = false;
+                isEndingMode = false;
+                botMessages = isStartupMode ? botMessagesStartup : botMessagesNormal;
+                console.log(`Switched to ${isStartupMode ? "STARTUP" : "NORMAL"} chat mode`);
+            }
+
+            if (key === "x") {
+                isEndingMode = !isEndingMode;
+                isScaredMode = false;
+                isType1Mode = false;
+                isStartupMode = false;
+                isNoMode = false;
+                botMessages = isEndingMode ? botMessagesEnding : botMessagesNormal;
+                console.log(`Switched to ${isEndingMode ? "ENDING" : "NORMAL"} chat mode`);
+            }
+
+            if (key === "*") {
+                isJumpScareMode = !isJumpScareMode;
+                isScaredMode = false;
+                isType1Mode = false;
+                isStartupMode = false;
+                isEndingMode = false;
+                isBitsMode = false;
+                isLaughingMode = false;
+                isNoMode = false;
+                botMessages = isJumpScareMode ? botMessagesJumpScare : botMessagesNormal;
+                console.log(`Switched to ${isJumpScareMode ? "JUMPSCARE" : "NORMAL"} chat mode`);
+            }
+
+            if (key === "y") {
+                isYesMode = !isYesMode;
+                isNoMode = false;
+                isScaredMode = false;
+                isType1Mode = false;
+                isStartupMode = false;
+                isEndingMode = false;
+                isJumpScareMode = false;
+                isLaughingMode = false;
+                isBitsMode = false;
+                botMessages = isYesMode ? botMessagesYes : botMessagesNormal;
+                console.log(`Switched to ${isYesMode ? "YES" : "NORMAL"} chat mode`);
+            }
+
+            if (key === "n") {
+                isNoMode = !isNoMode;
+                isYesMode = false;
+                isScaredMode = false;
+                isType1Mode = false;
+                isStartupMode = false;
+                isEndingMode = false;
+                isJumpScareMode = false;
+                isLaughingMode = false;
+                isBitsMode = false;
+                botMessages = isNoMode ? botMessagesNo : botMessagesNormal;
+                console.log(`Switched to ${isNoMode ? "NO" : "NORMAL"} chat mode`);
+            }
+
+            if (key === "-") {
+                isLaughingMode = !isLaughingMode;
+                isScaredMode = false;
+                isType1Mode = false;
+                isStartupMode = false;
+                isEndingMode = false;
+                isBitsMode = false;
+                isJumpScareMode = false;
+                isNoMode = false;
+                botMessages = isLaughingMode ? botMessagesLaughing : botMessagesNormal;
+                console.log(`Switched to ${isLaughingMode ? "LAUGHING" : "NORMAL"} chat mode`);
+            }
+        });
+
+        // Additional interactive features
+        function simulateViewerCount() {
+            if (currentStream) {
+                // Simulate viewer count changes
+                const change = Math.floor(Math.random() * 200) - 100; // -100 to +100
+                currentStream.viewers = Math.max(1, currentStream.viewers + change);
+                document.getElementById('viewerCount').textContent =
+                    currentStream.viewers.toLocaleString() + ' viewers';
+            }
+        }
+
+        // Start viewer count simulation when stream is active
+        setInterval(simulateViewerCount, 10000); // Update every 10 seconds
+
+        // Add some preset clips for demo
+        clips = [
+            {
+                id: 1,
+                title: 'Amazing Victory Royale!',
+                streamer: 'GamerPro123',
+                game: 'Fortnite',
+                date: '2024-01-15',
+                thumbnail: '🏆 Epic Win'
+            },
+            {
+                id: 2,
+                title: 'Speedrun World Record!',
+                streamer: 'SpeedRunner99',
+                game: 'Super Mario 64',
+                date: '2024-01-14',
+                thumbnail: '🏃 WR Attempt'
+            },
+            {
+                id: 3,
+                title: 'Funny Chat Reaction',
+                streamer: 'ChatMaster',
+                game: 'Just Chatting',
+                date: '2024-01-13',
+                thumbnail: '😂 LOL Moment'
+            }
+        ];
+
+        // Enhanced chat features
+        function addSpecialChatEvents() {
+            // Simulate special events
+            const events = [
+                () => addChatMessage('StreamHelper', '🎉 Someone just subscribed for 6 months!', 'mod'),
+                () => addChatMessage('StreamHelper', '🎯 New follower goal reached: 40k followers!', 'mod'),
+                () => addChatMessage('StreamHelper', '💎 Bits goal for today: 5000/10000', 'mod'),
+                () => addChatMessage('StreamHelper', '🎮 Switching to a new game in 10 minutes!', 'mod'),
+                () => addChatMessage('StreamHelper', '🔔 Don\'t forget to follow and turn on notifications!', 'mod')
+            ];
+
+            // Random special events
+            setInterval(() => {
+                if (currentStream && Math.random() < 0.1) { // 10% chance
+                    const event = events[Math.floor(Math.random() * events.length)];
+                    event();
+                }
+            }, 30000); // Every 30 seconds
+        }
+
+        // Initialize special events
+        addSpecialChatEvents();
+
+        // Handle page unload to stop streams
+        window.addEventListener('beforeunload', () => {
+            if (localStream) {
+                stopStream();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            // Only work when not typing in inputs
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                switch (e.key) {
+                    case 'f':
+                        if (currentStream) toggleFullscreen();
+                        break;
+                    case 'c':
+                        if (currentStream) createClip();
+                        break;
+                    case 'h':
+                        showHomepage();
+                        break;
+                    case 's':
+                        if (!isStreaming) startScreenShare();
+                        break;
+                    case 'w':
+                        if (!isStreaming) startWebcam();
+                        break;
+                    case 'q':
+                        if (isStreaming) stopStream();
+                        break;
+                    case 'Escape':
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // Search functionality
+        document.querySelector('.search-bar').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const searchTerm = this.value.trim();
+                if (searchTerm) {
+                    alert(`Searching for: "${searchTerm}"\n\nBeta!`);
+                }
+            }
+        });
+
+        // Stream quality simulation
+        function simulateStreamQuality() {
+            const qualities = ['1080p60', '1080p', '720p60', '720p', '480p', '360p'];
+            let currentQuality = 0;
+
+            // Add quality selector to controls
+            const streamControls = document.querySelector('.stream-controls > div');
+            const qualityBtn = document.createElement('button');
+            qualityBtn.className = 'control-btn';
+            qualityBtn.textContent = `📺 ${qualities[currentQuality]}`;
+            qualityBtn.onclick = function () {
+                currentQuality = (currentQuality + 1) % qualities.length;
+                this.textContent = `📺 ${qualities[currentQuality]}`;
+            };
+            streamControls.appendChild(qualityBtn);
+        }
+
+        // Initialize quality selector when stream loads
+        setTimeout(simulateStreamQuality, 1000);
+
+        // Donation alerts simulation
+        function simulateDonationAlerts() {
+            const donations = [
+                // Thematic
+                { user: 'MechanicMike', amount: 50, message: 'Here is some cash for the tow truck. Get out of there!' },
+                { user: 'GasStationSushi', amount: 6.66, message: 'Do not eat the hot dogs.' },
+                { user: 'SpookyLover', amount: 25, message: 'This atmosphere is dreadful. I love it.' },
+                { user: 'CarInsuranceAgent', amount: 100, message: 'Your premium just went up after that crash.' },
+                { user: 'NightShift', amount: 15, message: 'I work at a gas station rn and this is too real.' },
+                { user: 'NoFuel', amount: 10, message: 'Fill up the tank and run!' },
+                { user: 'JumpscareVictim', amount: 50, message: 'Buying new underwear brb.' },
+
+                // Generic Support
+                { user: 'TrixieFan1', amount: 20, message: 'SPOOKY TIME HYPE!' },
+                { user: 'Lurker', amount: 5, message: 'Watching from under my blanket.' },
+                { user: 'HypeTrain', amount: 100, message: 'Lets get this w (or survival).' },
+            ];
+
+
+            setInterval(() => {
+                if (currentStream && Math.random() < 0.05) { // 5% chance
+                    const donation = donations[Math.floor(Math.random() * donations.length)];
+                    showDonationAlert(donation);
+                }
+            }, 15000); // Every 15 seconds
+        }
+
+        function showDonationAlert(donation) {
+            // Create donation overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(45deg, #9146ff, #00d4ff);
+                    color: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    z-index: 10000;
+                    text-align: center;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                    animation: donationPulse 3s ease-in-out;
+                `;
+
+            overlay.innerHTML = `
+                    <div>💰 $${donation.amount} Donation!</div>
+                    <div style="font-size: 14px; margin-top: 5px;">From: ${donation.user}</div>
+                    <div style="font-size: 12px; margin-top: 5px; font-style: italic;">"${donation.message}"</div>
+                `;
+
+            document.body.appendChild(overlay);
+
+            // Add to chat
+            addChatMessage(donation.user, `💰 Donated ${donation.amount}: ${donation.message}`, 'bits');
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+            }, 7000);
+        }
+
+        // Add CSS animation for donations
+        const style = document.createElement('style');
+        style.textContent = `
+                @keyframes donationPulse {
+                    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                    20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+                    80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                    100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+                }
+
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); }
+                    to { transform: translateX(0); }
+                }
+
+                .bit-overlay {
+                    animation: slideInRight 0.3s ease-out;
+                }
+
+                .chat-message {
+                    animation: fadeInUp 0.3s ease;
+                }
+
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .loading {
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .loading::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+                    animation: loading 1.5s infinite;
+                }
+
+                @keyframes loading {
+                    0% { left: -100%; }
+                    100% { left: 100%; }
+                }
+
+                .live-stream {
+                    border: 2px solid #00ff00;
+                    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+                }
+            `;
+        document.head.appendChild(style);
+
+        // Initialize donation alerts
+        simulateDonationAlerts();
+
+        // Console welcome message
+        console.log(`
+                🎥 Welcome to StreamHub with Screen Share!
+
+                Keyboard shortcuts:
+                - H: Go to homepage
+                - S: Start screen share
+                - W: Start webcam
+                - Q: Stop stream
+                - F: Toggle fullscreen (when watching)
+                - C: Create clip (when watching)
+                - ESC: Exit fullscreen
+
+                Features:
+                - Real screen sharing with getDisplayMedia API
+                - Webcam streaming with getUserMedia API
+                - Live stream appears in the streams grid
+                - Full Twitch-like interface
+                - Interactive chat simulation
+                - Bits, donations, and clips system
+
+                Click "Share Screen" or "Start Webcam" to begin streaming!
+            `);
+    </script>
+</body>
+</html>
+
